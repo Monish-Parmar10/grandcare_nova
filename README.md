@@ -1,41 +1,135 @@
-# GrandCare
+<div align="center">
+  <h1>🫶 GrandCare</h1>
+  <p><strong>Technology that feels like a grandchild.</strong></p>
+  <p>A healthcare web app designed for elderly users (60+) 
+  connecting them with medicine support, daily wellness routines, 
+  community helpers, and emergency safety — all in one place.</p>
 
-GrandCare is a highly accessible web application frontend designed specifically for elderly users (60+) and community helpers. It focuses on large typography, high-contrast colors, minimal navigation steps, and relatable UI/UX to ensure a frictionless experience for users with low tech-literacy.
+  ![Made with React](https://img.shields.io/badge/React-Vite-blue)
+  ![Node.js](https://img.shields.io/badge/Backend-Node.js-green)
+  ![MongoDB](https://img.shields.io/badge/Database-MongoDB-brightgreen)
+  ![Hackathon](https://img.shields.io/badge/Blueprint_2026-Healthcare-purple)
+</div>
 
-## 🚀 How to Run the Frontend
+---
 
-This project is built with React, Vite, and Tailwind CSS v4.
+## 🌟 The Problem
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+Over 150 million elderly Indians live with limited family 
+support, complex medicine schedules, loneliness, and no fast 
+way to get help in an emergency. Most apps are built for the 
+young — GrandCare is built for them.
 
-2. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
+---
 
-3. **Open the App:**
-   Navigate to `http://localhost:5173` in your browser.
+## ✨ Features
 
-## 🎨 UI/UX Philosophy (Elder-Friendly)
+### 💊 Smart Medicine Companion
+- Auto-fills medicine info from OpenFDA API
+- 7-day dose streak tracker
+- Refill counter with low stock alerts
+- Missed dose WhatsApp alert to family
 
-- **Typography First:** Base font size is increased. We use clean, sans-serif fonts for legibility.
-- **High Contrast:** Colors are chosen to provide maximum contrast (e.g., strong blues, dark text on light backgrounds).
-- **Large Touch Targets:** Buttons (`LargeButton.jsx`) and Cards (`Card.jsx`) are designed to be easily tappable on mobile devices, reducing frustration from misclicks.
-- **Minimal Steps:** Core actions (e.g., SOS, taking medicine, asking for help) are accessible with 1 or 2 clicks from the dashboard.
-- **Clear Labeling:** Icons are always accompanied by clear, jargon-free text (e.g., "Need Help" instead of just an icon).
+### 📋 AI-Personalized Daily Routine
+- Health onboarding questionnaire (7 steps)
+- Grok AI generates custom tasks based on their diseases, 
+  mobility, habits and goals
+- GrandPoints gamification with leaderboard
+- Adaptive difficulty — tasks get easier or harder weekly
+- Daily mood check-in with family alerts
 
-## 🛠 Project Structure
+### 📰 Daily News Quiz
+- AI-generated current affairs questions daily
+- Earn GrandPoints for correct answers
+- Community leaderboard for friendly competition
 
-- `src/components/`: Reusable, accessible UI components.
-- `src/context/`: Local state management using React Context to simulate a backend.
-- `src/data/`: Mock JSON data used for initial testing.
-- `src/pages/`: Distinct views for Auth, Elder flows, and Helper flows.
-- `src/routes/`: Router setups restricting access based on user role.
+### 🤝 Community Help Connect
+- Elder posts a help request with GPS location
+- Nearby helpers (within 5km) get notified instantly
+- Real-time chat via Socket.io
+- Category-based requests: Medical, Fall, Daily Care
 
-## 📄 Data Contracts
+### 🆘 One-Tap SOS Emergency
+- Captures live GPS location
+- Instantly sends WhatsApp alert to emergency contacts
+- Direct CALL 911 button always visible
 
-For details on the expected backend API shapes and models, please refer to:
-[docs/data-contracts.md](docs/data-contracts.md)
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React (Vite) + Tailwind CSS |
+| Backend | Node.js + Express 5 |
+| Database | MongoDB Atlas + Mongoose |
+| Real-time | Socket.io |
+| Auth | JWT + Bcrypt |
+| AI | Grok API (xAI) |
+| Location | HTML5 Geolocation + MongoDB $near |
+| Alerts | WhatsApp Deep Links + Browser Notifications |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- MongoDB Atlas account
+- Grok API key from console.x.ai
+
+### Backend Setup
+```bash
+cd backend
+npm install
+cp .env.example .env
+# Fill in your values in .env
+node seed.js
+node src/server.js
+```
+
+### Frontend Setup
+```bash
+cd frontend
+npm install
+cp .env.example .env
+# Fill in your values in .env
+npm run dev
+```
+
+---
+
+## 👥 Who Uses GrandCare
+
+**Grandparents (60+)** — manage health, follow routines, 
+get help, stay safe
+
+**Community Helpers (18-35)** — volunteer nearby, chat with 
+elders, earn reputation
+
+**Family Members** — receive passive alerts, stay connected 
+without daily calls
+
+---
+
+## 🔮 Future Roadmap
+
+- GrandChat — anonymous video/voice community rooms for elderly
+- WhatsApp Bot for feature-phone users
+- PWA with offline SOS support
+- Pharmacy refill integration
+- Verified helper badge system
+
+---
+
+## 🏆 Built For
+
+**Blueprint 2026 Hackathon — Healthcare Domain**
+
+> *"Fewer taps, bigger purpose."*
+
+---
+
+<div align="center">
+  Made with 💙 for every grandparent who deserves better technology
+</div>
