@@ -1,32 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useHelp } from '../context/HelpContext';
-import { createHelpRequest } from '../utils/dummyApi';
+import { socket } from '../utils/socket';
 import Card from '../components/Card';
 import LargeButton from '../components/LargeButton';
-import { ArrowLeft, MapPin, Send, MessageCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+
 const HelpConnectPage = ({ role }) => {
-  const { user } = useAuth();
-  const { requests } = useHelp();
+  const { user, token } = useAuth();
+  const { requests, addRequest } = useHelp();
   const navigate = useNavigate();
 
   const [type, setType] = useState('Grocery');
   const [description, setDescription] = useState('');
   const [locationShared, setLocationShared] = useState(false);
+  const [coords, setCoords] = useState({ lat: 19.076, lng: 72.877 });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  const myRequests = requests.filter(r => r.elderId === user?.id);
-  const helperActiveRequests = requests.filter(r => r.status === 'accepted' && r.helperId === user?.id);
+  const [activeChatId, setActiveChatId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const chatEndRef = useRef(null);
+
+  const myRequests = requests.filter(r => r.elderId === user?.id || r.elder?._id === user?.id);
+  const helperActiveRequests = requests.filter(r => r.status === 'accepted' && (r.helperId === user?.id || r.helper?._id === user?.id));
+
+  useEffect(() => {
+    if (activeChatId) {
+      socket.emit('chat:join', activeChatId);
+      
+      const fetchHistory = async () => {
+        try {
+          const res = await fetch(`${API_URL}/chat/${activeChatId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+          setMessages(data);
+        } catch (err) {
+          console.error('Failed to fetch chat history:', err);
+        }
+      };
+      fetchHistory();
+
+      const handleReceiveMessage = (msg) => {
+        setMessages(prev => [...prev, msg]);
+      };
+
+      socket.on('chat:message', handleReceiveMessage);
+      return () => {
+        socket.off('chat:message', handleReceiveMessage);
+      };
+    }
+  }, [activeChatId, token]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Fake API call
-    await createHelpRequest({ type, description });
+    await addRequest({ 
+      type, 
+      description, 
+      elderLocation: coords 
+    });
     
     setIsSubmitting(false);
     setSuccessMsg('Your request has been posted! Helpers near you will be notified.');
@@ -38,7 +81,8 @@ const HelpConnectPage = ({ role }) => {
 
   const handleShareLocation = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(() => {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setLocationShared(true);
       });
     } else {
@@ -46,9 +90,39 @@ const HelpConnectPage = ({ role }) => {
     }
   };
 
+  const sendMessage = async (requestId) => {
+    if (!newMessage.trim()) return;
+    
+    const msgData = {
+      requestId,
+      text: newMessage,
+      senderId: user.id,
+      senderRole: user.role,
+      createdAt: new Date().toISOString()
+    };
+
+    socket.emit('chat:message', { requestId, message: msgData });
+    setMessages(prev => [...prev, msgData]);
+    setNewMessage('');
+
+    // Optional: Also save to DB via REST
+    try {
+      await fetch(`${API_URL}/chat/${requestId}`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: newMessage })
+      });
+    } catch (err) {
+      console.error('Failed to save message:', err);
+    }
+  };
+
   if (role === 'helper') {
     return (
-      <div className="pb-20">
+      <div className="pb-24 px-5 pt-6 w-full max-w-screen-md mx-auto">
         <div className="flex items-center mb-6">
           <button onClick={() => navigate(-1)} className="p-2 mr-4 bg-gray-200 rounded-full">
             <ArrowLeft className="w-8 h-8 text-gray-700" />
@@ -59,26 +133,41 @@ const HelpConnectPage = ({ role }) => {
         {helperActiveRequests.length === 0 ? (
           <p className="text-gray-500 text-center mt-10">No active help requests to chat about.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {helperActiveRequests.map(req => (
-              <Card key={req.id} className="border-2 border-primary-200">
+              <Card key={req.id || req._id} className="border-2 border-primary-200">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-xl">{req.elderName}</h3>
+                  <h3 className="font-bold text-xl">{req.elderName || req.elder?.name}</h3>
                   <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded text-sm font-bold">{req.type}</span>
                 </div>
                 
-                <div className="bg-gray-100 h-48 rounded-xl p-4 mb-4 overflow-y-auto flex flex-col gap-2">
-                  <div className="bg-white p-3 rounded-xl rounded-tl-none self-start max-w-[80%] shadow-sm text-sm">
-                    Hello, I am on my way!
-                  </div>
-                  <div className="bg-primary-500 text-white p-3 rounded-xl rounded-tr-none self-end max-w-[80%] shadow-sm text-sm">
-                    Thank you so much! See you soon.
-                  </div>
+                <div className="bg-gray-50 h-64 rounded-xl p-4 mb-4 overflow-y-auto flex flex-col gap-3 border border-gray-100">
+                  {messages.filter(m => m.requestId === (req.id || req._id)).map((m, mi) => (
+                    <div key={mi} className={`p-3 rounded-xl max-w-[85%] shadow-sm text-lg ${
+                      m.senderId === user.id ? 'bg-primary-600 text-white self-end rounded-tr-none' : 'bg-white border border-gray-200 self-start rounded-tl-none text-gray-800'
+                    }`}>
+                      {m.text}
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
                 </div>
                 
                 <div className="flex gap-2">
-                  <input type="text" placeholder="Type message..." className="flex-1 p-3 border rounded-xl" />
-                  <button className="bg-primary-600 text-white p-3 rounded-xl">
+                  <input 
+                    type="text" 
+                    value={newMessage}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value);
+                      setActiveChatId(req.id || req._id);
+                    }}
+                    onFocus={() => setActiveChatId(req.id || req._id)}
+                    placeholder="Type message..." 
+                    className="flex-1 p-4 border-2 border-gray-200 rounded-xl text-lg focus:border-primary-400 focus:outline-none" 
+                  />
+                  <button 
+                    onClick={() => sendMessage(req.id || req._id)}
+                    className="bg-primary-600 text-white p-4 rounded-xl hover:bg-primary-700 transition-colors"
+                  >
                     <Send className="w-6 h-6" />
                   </button>
                 </div>
@@ -91,7 +180,7 @@ const HelpConnectPage = ({ role }) => {
   }
 
   return (
-    <div className="pb-20">
+    <div className="pb-24 px-5 pt-6 w-full max-w-screen-md mx-auto">
       <div className="flex items-center mb-6">
         <button onClick={() => navigate(-1)} className="p-2 mr-4 bg-gray-200 rounded-full">
           <ArrowLeft className="w-8 h-8 text-gray-700" />
@@ -100,8 +189,49 @@ const HelpConnectPage = ({ role }) => {
       </div>
 
       {successMsg && (
-        <div className="bg-green-100 border-2 border-green-500 text-green-800 p-4 rounded-xl mb-6 font-bold text-lg">
+        <div className="bg-green-100 border-2 border-green-500 text-green-800 p-4 rounded-xl mb-6 font-bold text-lg text-center">
           {successMsg}
+        </div>
+      )}
+
+      {/* Elder side: Active Chats */}
+      {myRequests.some(r => r.status === 'accepted') && (
+        <div className="mb-10">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Active Helpers</h3>
+          {myRequests.filter(r => r.status === 'accepted').map(req => (
+            <Card key={req.id || req._id} className="border-2 border-green-200 bg-green-50 mb-4">
+               <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-bold text-lg">{req.helper?.name || 'A Helper'} is coming!</h4>
+                  <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded font-bold">CHAT ACTIVE</span>
+               </div>
+               <div className="bg-white/50 h-40 rounded-xl p-3 mb-3 overflow-y-auto flex flex-col gap-2 border border-green-100">
+                  {messages.filter(m => m.requestId === (req.id || req._id)).map((m, mi) => (
+                    <div key={mi} className={`p-2 rounded-lg max-w-[90%] text-sm ${
+                      m.senderId === user.id ? 'bg-primary-500 text-white self-end' : 'bg-gray-100 text-gray-800 self-start'
+                    }`}>
+                      {m.text}
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
+               </div>
+               <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={newMessage}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value);
+                      setActiveChatId(req.id || req._id);
+                    }}
+                    onFocus={() => setActiveChatId(req.id || req._id)}
+                    placeholder="Reply to helper..." 
+                    className="flex-1 p-2 border rounded-lg text-sm" 
+                  />
+                  <button onClick={() => sendMessage(req.id || req._id)} className="bg-primary-600 text-white p-2 rounded-lg">
+                    <Send className="w-4 h-4" />
+                  </button>
+               </div>
+            </Card>
+          ))}
         </div>
       )}
 
@@ -150,13 +280,13 @@ const HelpConnectPage = ({ role }) => {
       </Card>
 
       <div className="mt-8">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">My Past Requests</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-4">Your Past Requests</h3>
         {myRequests.length === 0 ? (
           <p className="text-gray-500 italic">No requests yet.</p>
         ) : (
           <div className="space-y-4">
             {myRequests.map(req => (
-              <div key={req.id} className="bg-white p-4 rounded-xl border border-gray-200 flex justify-between items-center shadow-sm">
+              <div key={req.id || req._id} className="bg-white p-4 rounded-xl border border-gray-200 flex justify-between items-center shadow-sm">
                 <div>
                   <h4 className="font-bold text-lg text-gray-800">{req.type}</h4>
                   <p className="text-gray-500">{new Date(req.createdAt).toLocaleDateString()}</p>

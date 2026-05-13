@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LargeButton from '../components/LargeButton';
-import { LogIn } from 'lucide-react';
+import { LogIn, Home } from 'lucide-react';
 
 const LoginPage = () => {
+  const [searchParams] = useSearchParams();
+  const roleFromUrl = searchParams.get('role') || 'elder';
+  const [role, setRole] = useState(roleFromUrl);
+  
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,27 +21,67 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
 
-    const user = login(phone, password);
-
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const user = await login(phone, password);
+      
       if (user) {
-        navigate(user.role === 'elder' ? '/elder/dashboard' : '/helper/dashboard');
-      } else {
-        setError('Invalid phone number or password. Please try again.');
+        // Strict role check to keep logins "separate"
+        if (user.role !== role) {
+          setError(`This account is registered as a ${user.role === 'elder' ? 'Grandparent' : 'Helper'}. Please switch to the correct tab to login.`);
+          setLoading(false);
+          logout(); // Clear the session since it's the wrong role for this tab
+          return;
+        }
+
+        setLoading(false);
+        if (user.role === 'elder') {
+          navigate('/elder/dashboard');
+        } else if (user.role === 'helper') {
+          navigate('/helper/dashboard');
+        }
       }
-    }, 800);
+    } catch (err) {
+      setLoading(false);
+      setError(err.message || 'Invalid phone number or password. Please try again.');
+    }
   };
 
+  const roleLabel = role === 'elder' ? 'Grandparent' : 'Helper';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center px-6 relative">
+      {/* Home Button */}
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 flex items-center gap-2 bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-gray-100 text-gray-600 hover:text-primary-600 hover:shadow-md transition-all font-bold"
+      >
+        <Home className="w-5 h-5" />
+        <span>Home</span>
+      </button>
+
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-black text-primary-700 mb-2">Welcome Back</h1>
-          <p className="text-xl text-gray-600">Login to GrandCare</p>
+          <p className="text-xl text-gray-600">Login as a {roleLabel}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          {/* Role Switcher */}
+          <div className="flex rounded-xl overflow-hidden border-2 border-gray-200 mb-8">
+            <button
+              onClick={() => setRole('elder')}
+              className={`flex-1 py-3 text-lg font-bold transition-colors ${role === 'elder' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              👴 Grandparent
+            </button>
+            <button
+              onClick={() => setRole('helper')}
+              className={`flex-1 py-3 text-lg font-bold transition-colors ${role === 'helper' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              🤝 Helper
+            </button>
+          </div>
+
           {error && (
             <div className="bg-red-50 text-red-700 p-4 rounded-xl mb-6 font-bold text-lg border border-red-200">
               {error}
@@ -53,6 +97,7 @@ const LoginPage = () => {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter your phone number"
                 className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none"
+                autoComplete="off"
                 required
               />
             </div>
@@ -65,18 +110,19 @@ const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none"
+                autoComplete="new-password"
                 required
               />
             </div>
 
             <LargeButton type="submit" icon={LogIn} disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Logging in...' : `Login as ${roleLabel}`}
             </LargeButton>
           </form>
 
           <p className="text-center mt-6 text-lg text-gray-600">
             Don't have an account?{' '}
-            <Link to="/register" className="text-primary-600 font-bold underline">Register here</Link>
+            <Link to={`/register?role=${role}`} className="text-primary-600 font-bold underline">Register here</Link>
           </p>
         </div>
 

@@ -19,6 +19,13 @@ const newsQuizQuestionSchema = new mongoose.Schema(
       required: true,
       default: 10,
     },
+    city: {
+      type: String,
+    },
+    isAI: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

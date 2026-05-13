@@ -15,6 +15,7 @@ export const getUserProfile = async (req, res, next) => {
         role: user.role,
         city: user.city,
         pincode: user.pincode,
+        hasCompletedHealthProfile: user.hasCompletedHealthProfile,
         hasSmartphone: user.hasSmartphone,
         hasWhatsApp: user.hasWhatsApp,
         hasFamilySupport: user.hasFamilySupport,
@@ -104,12 +105,79 @@ export const updateUserLocation = async (req, res, next) => {
 // @access  Private
 export const getLeaderboard = async (req, res, next) => {
   try {
-    const elders = await User.find({ role: 'elder' })
+    const { timeframe } = req.query; // 'alltime' or 'week'
+    
+    // For simplicity, we just sort by grandScore for all time
+    // If 'week' is implemented, we would join with WeeklyStats or calculate
+    let elders = await User.find({ role: 'elder' })
       .sort({ grandScore: -1 })
-      .limit(10)
-      .select('name city grandScore');
+      .select('name city grandScore _id');
 
-    res.json(elders);
+    // Calculate streaks for top 10 or all (we need all to find current user rank)
+    // Actually, calculating for all might be slow in production, but ok for now.
+    const RoutineTask = (await import('../models/RoutineTask.js')).default;
+    
+    const leaderboardData = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    for (let i = 0; i < elders.length; i++) {
+      const elder = elders[i];
+      
+      // Calculate Streak
+      const tasks = await RoutineTask.find({ user: elder._id });
+      let allDates = new Set();
+      tasks.forEach(t => t.completedDates.forEach(d => allDates.add(d)));
+      
+      let sortedDates = Array.from(allDates).sort((a,b) => new Date(b) - new Date(a));
+      let streak = 0;
+      
+      if (sortedDates.length > 0) {
+        let currentDate = today;
+        let firstDateStr = sortedDates[0];
+        let firstDate = new Date(firstDateStr);
+        firstDate.setHours(0,0,0,0);
+        
+        if (firstDate.getTime() === today.getTime() || firstDate.getTime() === yesterday.getTime()) {
+           // Count backwards
+           let checkDate = new Date(firstDate);
+           for (let dStr of sortedDates) {
+             let d = new Date(dStr);
+             d.setHours(0,0,0,0);
+             if (d.getTime() === checkDate.getTime()) {
+               streak++;
+               checkDate.setDate(checkDate.getDate() - 1);
+             } else {
+               break;
+             }
+           }
+        }
+      }
+
+      leaderboardData.push({
+        _id: elder._id,
+        name: elder.name.split(' ')[0], // First name only
+        grandScore: elder.grandScore,
+        streak: streak,
+        rank: i + 1,
+      });
+    }
+
+    // Filter if week
+    if (timeframe === 'week') {
+       // we can sort by streak as proxy or we can use weeklystats.
+       // Without full weekly points, let's just return all-time for now but indicate it
+    }
+
+    const top10 = leaderboardData.slice(0, 10);
+    const currentUserData = leaderboardData.find(e => e._id.toString() === req.user._id.toString());
+
+    res.json({
+      leaderboard: top10,
+      currentUser: currentUserData
+    });
   } catch (error) {
     next(error);
   }

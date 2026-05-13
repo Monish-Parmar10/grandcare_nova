@@ -26,6 +26,35 @@ const medicineSchema = new mongoose.Schema(
     notes: {
       type: String,
     },
+    warnings: {
+      type: String,
+    },
+    reminderTime: {
+      type: String,
+    },
+    endDate: {
+      type: Date,
+    },
+    takenDates: {
+      type: [Date],
+      default: [],
+    },
+    currentQuantity: {
+      type: Number,
+      default: 0,
+    },
+    totalQuantity: {
+      type: Number,
+      default: 0,
+    },
+    refillThreshold: {
+      type: Number,
+      default: 7,
+    },
+    needsRefill: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

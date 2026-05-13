@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDB from './config/db.js';
+import { startCronJobs } from './cron.js';
 
 // Import Routes
 import authRoutes from './routes/authRoutes.js';
@@ -14,6 +15,8 @@ import medicineRoutes from './routes/medicineRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import sosRoutes from './routes/sosRoutes.js';
+import moodRoutes from './routes/moodRoutes.js';
+import healthProfileRoutes from './routes/healthProfileRoutes.js';
 
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
@@ -25,14 +28,29 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 const io = new Server(server, {
   cors: {
-    origin: '*', // For development, allow all origins
-    methods: ['GET', 'POST']
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -48,6 +66,8 @@ app.use('/api/medicines', medicineRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/sos', sosRoutes);
+app.use('/api/mood', moodRoutes);
+app.use('/api/health-profile', healthProfileRoutes);
 
 // Error Handling Middleware
 app.use(notFound);
@@ -77,6 +97,9 @@ io.on('connection', (socket) => {
     console.log(`User disconnected: ${socket.id}`);
   });
 });
+
+// Start cron jobs
+startCronJobs();
 
 const PORT = process.env.PORT || 5000;
 

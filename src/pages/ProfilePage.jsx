@@ -5,8 +5,11 @@ import LargeButton from '../components/LargeButton';
 import { ArrowLeft, User, Edit3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { useSettings } from '../context/SettingsContext';
+
 const ProfilePage = ({ role }) => {
   const { user, logout } = useAuth();
+  const { largeText, setLargeText } = useSettings();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -15,7 +18,7 @@ const ProfilePage = ({ role }) => {
   };
 
   return (
-    <div className="pb-20">
+    <div className="pb-24 px-5 pt-6 w-full max-w-screen-md mx-auto">
       <div className="flex items-center mb-6">
         <button onClick={() => navigate(-1)} className="p-2 mr-4 bg-gray-200 rounded-full">
           <ArrowLeft className="w-8 h-8 text-gray-700" />
@@ -40,12 +43,12 @@ const ProfilePage = ({ role }) => {
         <div className="space-y-4">
           <div>
             <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Phone Number</p>
-            <p className="text-xl text-gray-800">{user?.phone || '+91 98765 43210'}</p>
+            <p className="text-xl text-gray-800">{user?.phone || 'Not provided'}</p>
           </div>
           
           <div>
             <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">City</p>
-            <p className="text-xl text-gray-800">{user?.city || 'Ahmedabad'}</p>
+            <p className="text-xl text-gray-800">{user?.city || 'Not specified'}</p>
           </div>
         </div>
       </Card>
@@ -56,15 +59,12 @@ const ProfilePage = ({ role }) => {
           <div className="space-y-4">
             <div className="flex justify-between items-center border-b pb-4">
               <span className="text-lg text-gray-700 font-medium">Large Text Size</span>
-              <div className="w-14 h-8 bg-primary-600 rounded-full relative">
-                <div className="w-6 h-6 bg-white rounded-full absolute top-1 right-1"></div>
-              </div>
-            </div>
-            <div className="flex justify-between items-center border-b pb-4">
-              <span className="text-lg text-gray-700 font-medium">Voice Navigation</span>
-              <div className="w-14 h-8 bg-gray-300 rounded-full relative">
-                <div className="w-6 h-6 bg-white rounded-full absolute top-1 left-1"></div>
-              </div>
+              <button 
+                onClick={() => setLargeText(!largeText)}
+                className={`w-16 h-9 rounded-full relative transition-colors ${largeText ? 'bg-primary-600' : 'bg-gray-300'}`}
+              >
+                <div className={`w-7 h-7 bg-white rounded-full absolute top-1 transition-all ${largeText ? 'right-1' : 'left-1'}`}></div>
+              </button>
             </div>
           </div>
         </Card>

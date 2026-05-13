@@ -1,28 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
 import LargeButton from '../components/LargeButton';
 import { ArrowLeft, PhoneCall, ShieldAlert, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+
 const SOSSettingsPage = () => {
+  const { token } = useAuth();
   const navigate = useNavigate();
-  const [contacts, setContacts] = useState([
-    { id: '1', name: 'Ravi Patel (Son)', phone: '9876543210' }
-  ]);
+  const [contacts, setContacts] = useState([]);
   const [isTesting, setIsTesting] = useState(false);
   const [testSuccess, setTestSuccess] = useState(false);
 
-  const handleTestSOS = () => {
+  useEffect(() => {
+    if (!token) return;
+    const fetchContacts = async () => {
+      try {
+        const res = await fetch(`${API_URL}/sos/contacts`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setContacts(data);
+      } catch (err) {
+        console.error('Failed to fetch SOS contacts:', err);
+      }
+    };
+    fetchContacts();
+  }, [token]);
+
+  const handleTestSOS = async () => {
     setIsTesting(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch(`${API_URL}/sos/alert`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setTestSuccess(true);
+        setTimeout(() => setTestSuccess(false), 5000);
+      }
+    } catch (err) {
+      console.error('Failed to trigger SOS:', err);
+    } finally {
       setIsTesting(false);
-      setTestSuccess(true);
-      setTimeout(() => setTestSuccess(false), 5000);
-    }, 2000);
+    }
   };
 
   return (
-    <div className="pb-20">
+    <div className="pb-24 px-5 pt-6 w-full max-w-screen-md mx-auto">
       <div className="flex items-center mb-6">
         <button onClick={() => navigate(-1)} className="p-2 mr-4 bg-gray-200 rounded-full">
           <ArrowLeft className="w-8 h-8 text-gray-700" />

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getMedicines, createMedicine, deleteMedicine } from '../controllers/medicineController.js';
+import { getMedicines, createMedicine, deleteMedicine, markMedicineTaken } from '../controllers/medicineController.js';
 import { protect, requireRole } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -12,5 +12,6 @@ router.route('/')
   .post(createMedicine);
 
 router.delete('/:id', deleteMedicine);
+router.put('/:id/taken', markMedicineTaken);
 
 export default router;

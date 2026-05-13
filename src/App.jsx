@@ -10,9 +10,21 @@ import ElderRoutes from './routes/ElderRoutes';
 import HelperRoutes from './routes/HelperRoutes';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return null;
   if (!user) return <Navigate to="/login" />;
-  if (allowedRole && user.role !== allowedRole) return <Navigate to="/" />;
+  if (allowedRole && user.role !== allowedRole) {
+    return <Navigate to={user.role === 'elder' ? '/elder/dashboard' : '/helper/dashboard'} />;
+  }
+  return children;
+};
+
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) {
+    return <Navigate to={user.role === 'elder' ? '/elder/dashboard' : '/helper/dashboard'} />;
+  }
   return children;
 };
 
@@ -24,9 +36,9 @@ const App = () => {
       <div className="min-h-screen bg-gray-50">
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+          <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
 
           {/* Elder Routes */}
           <Route

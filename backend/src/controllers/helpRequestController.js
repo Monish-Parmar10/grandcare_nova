@@ -23,7 +23,15 @@ export const createHelpRequest = async (req, res, next) => {
       },
     });
 
-    res.status(201).json(helpRequest);
+    res.status(201).json({
+      id: helpRequest._id,
+      elderId: helpRequest.elder,
+      elderName: helpRequest.elderName,
+      type: helpRequest.type,
+      description: helpRequest.description,
+      status: helpRequest.status,
+      createdAt: helpRequest.createdAt
+    });
   } catch (error) {
     next(error);
   }
@@ -72,6 +80,7 @@ export const getNearbyHelpRequests = async (req, res, next) => {
         type: req.type,
         description: req.description,
         distance: distanceFormatted,
+        status: req.status,
         createdAt: req.createdAt,
       };
     });
@@ -87,7 +96,7 @@ export const getNearbyHelpRequests = async (req, res, next) => {
 // @access  Private (Helper)
 export const acceptHelpRequest = async (req, res, next) => {
   try {
-    const request = await HelpRequest.findById(req.params.id);
+    const request = await HelpRequest.findById(req.params.id).populate('helper', 'name phone');
 
     if (!request) {
       res.status(404);
@@ -104,10 +113,20 @@ export const acceptHelpRequest = async (req, res, next) => {
 
     await request.save();
 
-    // In a real app, emit Socket.io event here to notify elder
-    // io.to(`user_${request.elder}`).emit('requestAccepted', request);
-
-    res.json(request);
+    res.json({
+      id: request._id,
+      elderId: request.elder,
+      elderName: request.elderName,
+      type: request.type,
+      description: request.description,
+      status: request.status,
+      helper: {
+        id: req.user._id,
+        name: req.user.name,
+        phone: req.user.phone
+      },
+      createdAt: request.createdAt
+    });
   } catch (error) {
     next(error);
   }
@@ -137,7 +156,10 @@ export const completeHelpRequest = async (req, res, next) => {
     request.status = 'completed';
     await request.save();
 
-    res.json(request);
+    res.json({
+      id: request._id,
+      status: request.status
+    });
   } catch (error) {
     next(error);
   }
@@ -151,13 +173,28 @@ export const getMyHelpRequests = async (req, res, next) => {
     let requests;
     
     if (req.user.role === 'elder') {
-      requests = await HelpRequest.find({ elder: req.user._id }).sort({ createdAt: -1 });
+      requests = await HelpRequest.find({ elder: req.user._id }).populate('helper', 'name phone').sort({ createdAt: -1 });
     } else {
       // helper
-      requests = await HelpRequest.find({ helper: req.user._id, status: 'accepted' }).sort({ createdAt: -1 });
+      requests = await HelpRequest.find({ helper: req.user._id }).populate('elder', 'name').sort({ createdAt: -1 });
     }
 
-    res.json(requests);
+    const formattedRequests = requests.map(req => ({
+      id: req._id,
+      elderId: req.elder?._id || req.elder,
+      elderName: req.elderName || (req.elder ? req.elder.name : 'Unknown'),
+      type: req.type,
+      description: req.description,
+      status: req.status,
+      helper: req.helper ? {
+        id: req.helper._id,
+        name: req.helper.name,
+        phone: req.helper.phone
+      } : null,
+      createdAt: req.createdAt
+    }));
+
+    res.json(formattedRequests);
   } catch (error) {
     next(error);
   }

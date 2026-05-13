@@ -9,7 +9,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    window.location.href = '/login';
   };
 
   if (!user) return null;
@@ -18,8 +18,8 @@ const Navbar = () => {
   const profilePath = user.role === 'elder' ? '/elder/profile' : '/helper/profile';
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50">
-      <div className="max-w-lg mx-auto flex justify-around py-3">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50 flex justify-center">
+      <div className="w-full max-w-screen-md px-4 flex justify-around py-3">
         <Link to={dashboardPath} className="flex flex-col items-center gap-1 text-gray-600 hover:text-primary-600 transition-colors">
           <Home className="w-7 h-7" />
           <span className="text-xs font-bold">Home</span>

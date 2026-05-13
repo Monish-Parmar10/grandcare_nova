@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LargeButton from '../components/LargeButton';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Home } from 'lucide-react';
 
 const RegisterPage = () => {
   const [searchParams] = useSearchParams();
@@ -16,27 +16,78 @@ const RegisterPage = () => {
     hasSmartphone: true, hasWhatsApp: false, hasFamilySupport: false,
   });
   const [loading, setLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   const update = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
-  const handleSubmit = (e) => {
+  const fetchCityFromPincode = async (pincode) => {
+    if (pincode.length === 6) {
+      try {
+        const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+        const data = await response.json();
+        if (data[0].Status === 'Success') {
+          const postOffice = data[0].PostOffice[0];
+          update('city', postOffice.District);
+        }
+      } catch (err) {
+        console.error('Failed to fetch city:', err);
+      }
+    }
+  };
+
+  const handlePincodeChange = (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+    update('pincode', val);
+    if (val.length === 6) {
+      fetchCityFromPincode(val);
+    }
+  };
+
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
+    return regex.test(password);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      alert('Passwords do not match!');
+    setPasswordError('');
+    
+    if (!validatePassword(form.password)) {
+      setPasswordError('Password must include uppercase, lowercase, and symbols.');
       return;
     }
+
+    if (form.password !== form.confirmPassword) {
+      setPasswordError('Passwords do not match!');
+      return;
+    }
+    
     setLoading(true);
-    setTimeout(() => {
-      register(form);
+    try {
+      const user = await register(form);
       setLoading(false);
-      navigate(form.role === 'elder' ? '/elder/dashboard' : '/helper/dashboard');
-    }, 800);
+      if (user) {
+        navigate(user.role === 'elder' ? '/elder/dashboard' : '/helper/dashboard');
+      }
+    } catch (err) {
+      setLoading(false);
+      alert(err.message || 'Registration failed');
+    }
   };
 
   const roleLabel = form.role === 'elder' ? 'Grandparent' : 'Helper';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 py-10 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 py-10 px-6 relative">
+      {/* Home Button */}
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 flex items-center gap-2 bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-gray-100 text-gray-600 hover:text-primary-600 hover:shadow-md transition-all font-bold"
+      >
+        <Home className="w-5 h-5" />
+        <span>Home</span>
+      </button>
+
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-black text-primary-700 mb-2">Join GrandCare as a {roleLabel}</h1>
@@ -70,32 +121,45 @@ const RegisterPage = () => {
             <div>
               <label className="block text-lg font-bold text-gray-700 mb-2">Phone Number</label>
               <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)}
-                placeholder="10-digit mobile number" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" required />
+                placeholder="10-digit mobile number" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" 
+                autoComplete="off" required />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-lg font-bold text-gray-700 mb-2">City</label>
                 <input type="text" value={form.city} onChange={e => update('city', e.target.value)}
-                  placeholder="City" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" />
+                  placeholder="Auto-filled" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none bg-gray-50" required />
               </div>
               <div>
                 <label className="block text-lg font-bold text-gray-700 mb-2">PIN Code</label>
-                <input type="text" value={form.pincode} onChange={e => update('pincode', e.target.value)}
-                  placeholder="PIN" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" />
+                <input type="text" value={form.pincode} onChange={handlePincodeChange}
+                  placeholder="6-digit PIN" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" maxLength={6} required />
               </div>
             </div>
 
             <div>
               <label className="block text-lg font-bold text-gray-700 mb-2">Password</label>
-              <input type="password" value={form.password} onChange={e => update('password', e.target.value)}
-                placeholder="Create a password" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" required />
+              <input type="password" value={form.password} 
+                onChange={e => {
+                  update('password', e.target.value);
+                  if (passwordError) setPasswordError('');
+                }}
+                placeholder="Create a password" 
+                className={`w-full p-4 border-2 rounded-xl text-xl focus:outline-none transition-colors ${passwordError ? 'border-red-500 focus:border-red-600' : 'border-gray-300 focus:border-primary-500'}`} 
+                autoComplete="new-password" required />
+              {passwordError ? (
+                <p className="text-sm font-bold text-red-500 mt-2">{passwordError}</p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-2">Password must include uppercase, lowercase, and symbols.</p>
+              )}
             </div>
 
             <div>
               <label className="block text-lg font-bold text-gray-700 mb-2">Confirm Password</label>
               <input type="password" value={form.confirmPassword} onChange={e => update('confirmPassword', e.target.value)}
-                placeholder="Re-enter password" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" required />
+                placeholder="Re-enter password" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" 
+                autoComplete="new-password" required />
             </div>
 
             {/* Elder-specific questions */}
@@ -128,7 +192,7 @@ const RegisterPage = () => {
 
           <p className="text-center mt-6 text-lg text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary-600 font-bold underline">Login here</Link>
+            <Link to={`/login?role=${form.role}`} className="text-primary-600 font-bold underline">Login here</Link>
           </p>
         </div>
       </div>

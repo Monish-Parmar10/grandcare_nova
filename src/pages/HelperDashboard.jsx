@@ -19,7 +19,7 @@ const HelperDashboard = () => {
   };
 
   return (
-    <div className="pb-24 px-5 pt-6 max-w-lg mx-auto">
+    <div className="pb-24 px-5 pt-6 w-full max-w-screen-md mx-auto md:pt-12">
       {/* Welcome */}
       <div className="mb-6">
         <p className="text-lg text-gray-500 font-medium">Hello,</p>
@@ -27,7 +27,7 @@ const HelperDashboard = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <Card className="bg-blue-50 border-blue-200 text-center">
           <p className="text-3xl font-black text-blue-700">{pendingRequests.length}</p>
           <p className="text-sm font-bold text-blue-600">Nearby Requests</p>

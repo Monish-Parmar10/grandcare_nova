@@ -33,6 +33,8 @@ export const registerUser = async (req, res, next) => {
         name: user.name,
         phone: user.phone,
         role: user.role,
+        city: user.city,
+        hasCompletedHealthProfile: user.hasCompletedHealthProfile,
         grandScore: user.grandScore,
         token: generateToken(user._id),
       });
@@ -60,6 +62,8 @@ export const loginUser = async (req, res, next) => {
         name: user.name,
         phone: user.phone,
         role: user.role,
+        city: user.city,
+        hasCompletedHealthProfile: user.hasCompletedHealthProfile,
         grandScore: user.grandScore,
         token: generateToken(user._id),
       });
