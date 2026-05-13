@@ -25,21 +25,21 @@ young — GrandCare is built for them.
 ## ✨ Features
 
 ### 💊 Smart Medicine Companion
-- Auto-fills medicine info from OpenFDA API
+- Auto-fills medicine info from OpenFDA 
 - 7-day dose streak tracker
 - Refill counter with low stock alerts
 - Missed dose WhatsApp alert to family
 
 ### 📋 AI-Personalized Daily Routine
 - Health onboarding questionnaire (7 steps)
-- Grok AI generates custom tasks based on their diseases, 
+- AI generates custom tasks based on their diseases, 
   mobility, habits and goals
 - GrandPoints gamification with leaderboard
 - Adaptive difficulty — tasks get easier or harder weekly
 - Daily mood check-in with family alerts
 
 ### 📰 Daily News Quiz
-- AI-generated current affairs questions daily
+- AI-generated current affairs questions daily 
 - Earn GrandPoints for correct answers
 - Community leaderboard for friendly competition
 
@@ -65,7 +65,7 @@ young — GrandCare is built for them.
 | Database | MongoDB Atlas + Mongoose |
 | Real-time | Socket.io |
 | Auth | JWT + Bcrypt |
-| AI | Grok API (xAI) |
+| AI | API (xAI) |
 | Location | HTML5 Geolocation + MongoDB $near |
 | Alerts | WhatsApp Deep Links + Browser Notifications |
 
@@ -76,7 +76,6 @@ young — GrandCare is built for them.
 ### Prerequisites
 - Node.js 18+
 - MongoDB Atlas account
-- Grok API key from console.x.ai
 
 ### Backend Setup
 ```bash
