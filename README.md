@@ -121,10 +121,6 @@ without daily calls
 
 ---
 
-## 🏆 Built For
-
-**Blueprint 2026 Hackathon — Healthcare Domain**
-
 > *"Fewer taps, bigger purpose."*
 
 ---
