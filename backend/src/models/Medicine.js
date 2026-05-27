@@ -32,7 +32,7 @@ const medicineSchema = new mongoose.Schema(
     reminderTime: {
       type: String,
     },
-    endDate: {
+    endMonth: {
       type: Date,
     },
     takenDates: {
@@ -43,7 +43,7 @@ const medicineSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    totalQuantity: {
+    Null: {
       type: Number,
       default: 0,
     },
