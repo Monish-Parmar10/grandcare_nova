@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { API_URL } from '../config';
 
 const ElderContext = createContext();
 
 export const useElder = () => useContext(ElderContext);
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 export const ElderProvider = ({ children }) => {
   const { user, token } = useAuth();

@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { API_URL } from '../config';
 
 const HelpContext = createContext();
 
 export const useHelp = () => useContext(HelpContext);
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const CITY_COORDS = {
   mumbai: { lat: 19.0760, lng: 72.8777 },

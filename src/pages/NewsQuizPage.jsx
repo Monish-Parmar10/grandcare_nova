@@ -5,8 +5,7 @@ import Card from '../components/Card';
 import LargeButton from '../components/LargeButton';
 import { ArrowLeft, Trophy, Newspaper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = `${import.meta.env.VITE_API_URL}/api`;
+import { API_URL } from '../config';
 
 const QuizLoader = () => {
   const [msgIndex, setMsgIndex] = useState(0);

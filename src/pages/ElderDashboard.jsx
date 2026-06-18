@@ -9,6 +9,7 @@ import { getGreeting } from '../utils/formatDate';
 import {
   Pill, ListChecks, Newspaper, Heart, ShieldAlert, Trophy
 } from 'lucide-react';
+import { API_URL } from '../config';
 
 const DailyMoodCheckin = ({ userName }) => {
   const [moodSaved, setMoodSaved] = useState(false);
@@ -19,7 +20,7 @@ const DailyMoodCheckin = ({ userName }) => {
   useEffect(() => {
     const checkMood = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mood/today`, {
+        const res = await fetch(`${API_URL}/mood/today`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -37,7 +38,7 @@ const DailyMoodCheckin = ({ userName }) => {
 
   const handleMood = async (mood) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mood`, {
+      const res = await fetch(`${API_URL}/mood`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -106,7 +107,7 @@ const ElderDashboard = () => {
     const fetchLeaderboard = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/leaderboard`, {
+        const res = await fetch(`${API_URL}/users/leaderboard`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {

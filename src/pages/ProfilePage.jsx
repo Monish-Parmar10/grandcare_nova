@@ -5,6 +5,7 @@ import LargeButton from '../components/LargeButton';
 import { ArrowLeft, User, Edit3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useElder } from '../context/ElderContext';
+import { API_URL } from '../config';
 
 import { useSettings } from '../context/SettingsContext';
 
@@ -122,7 +123,7 @@ const ProfilePage = ({ role }) => {
     const fetchHealthProfile = async () => {
       setLoadingProfile(true);
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/health-profile`, {
+        const res = await fetch(`${API_URL}/health-profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -162,7 +163,7 @@ const ProfilePage = ({ role }) => {
     };
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/health-profile`, {
+      const res = await fetch(`${API_URL}/health-profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

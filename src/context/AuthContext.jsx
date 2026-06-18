@@ -1,11 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { connectSocket, disconnectSocket } from '../utils/socket';
+import { API_URL } from '../config';
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
-
-const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
