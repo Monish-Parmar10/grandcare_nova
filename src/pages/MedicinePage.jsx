@@ -10,15 +10,15 @@ import useReminderAlarm from '../hooks/useReminderAlarm';
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col relative">
+    <div className="fixed inset-0 bg-black/50 z-[200] flex justify-center items-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] sm:max-h-[90vh] overflow-y-auto flex flex-col relative">
         <div className="p-5 border-b sticky top-0 bg-white z-10 flex justify-between items-center rounded-t-2xl">
           <h2 className="text-xl font-bold text-gray-800">{title}</h2>
           <button onClick={onClose} className="p-2 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200">
             <XCircle className="w-6 h-6" />
           </button>
         </div>
-        <div className="p-5">
+        <div className="p-5 pb-8">
           {children}
         </div>
       </div>
