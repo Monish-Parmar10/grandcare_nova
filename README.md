@@ -8,7 +8,7 @@
   ![Made with React](https://img.shields.io/badge/React-Vite-blue)
   ![Node.js](https://img.shields.io/badge/Backend-Node.js-green)
   ![MongoDB](https://img.shields.io/badge/Database-MongoDB-brightgreen)
-  ![Hackathon](https://img.shields.io/badge/Blueprint_2026-Healthcare-purple)
+  ![AI](https://img.shields.io/badge/AI-Google%20Gemini-orange)
 </div>
 
 ---
@@ -52,7 +52,7 @@ young — GrandCare is built for them.
 ### 🆘 One-Tap SOS Emergency
 - Captures live GPS location
 - Instantly sends WhatsApp alert to emergency contacts
-- Direct CALL 911 button always visible
+- Direct CALL 112 button always visible
 
 ---
 
@@ -65,7 +65,7 @@ young — GrandCare is built for them.
 | Database | MongoDB Atlas + Mongoose |
 | Real-time | Socket.io |
 | Auth | JWT + Bcrypt |
-| AI | API (xAI) |
+| AI | Google Gemini 2.5 Flash |
 | Location | HTML5 Geolocation + MongoDB $near |
 | Alerts | WhatsApp Deep Links + Browser Notifications |
 
@@ -76,6 +76,7 @@ young — GrandCare is built for them.
 ### Prerequisites
 - Node.js 18+
 - MongoDB Atlas account
+- Google Gemini API key (get one free at [aistudio.google.com](https://aistudio.google.com))
 
 ### Backend Setup
 ```bash
@@ -84,16 +85,25 @@ npm install
 cp .env.example .env
 # Fill in your values in .env
 node seed.js
-node src/server.js
+npm run dev
 ```
 
 ### Frontend Setup
 ```bash
-cd frontend
 npm install
 cp .env.example .env
 # Fill in your values in .env
 npm run dev
+```
+
+### Environment Variables
+Create a `.env` file in `/backend` with:
+```
+PORT=5000
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+GEMINI_API_KEY_1=your_gemini_key_for_routines
+GEMINI_API_KEY_2=your_gemini_key_for_quiz
 ```
 
 ---
@@ -118,14 +128,6 @@ without daily calls
 - PWA with offline SOS support
 - Pharmacy refill integration
 - Verified helper badge system
-
----
-
-## 🏆 Built For
-
-**Blueprint 2026 Hackathon — Healthcare Domain**
-
-> *"Fewer taps, bigger purpose."*
 
 ---
 
