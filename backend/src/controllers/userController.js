@@ -43,9 +43,13 @@ export const updateUserProfile = async (req, res, next) => {
 
     if (user) {
       user.name = req.body.name || user.name;
-      user.city = req.body.city || user.city;
-      user.pincode = req.body.pincode || user.pincode;
+      user.city = req.body.city !== undefined ? req.body.city : user.city;
+      user.pincode = req.body.pincode !== undefined ? req.body.pincode : user.pincode;
       
+      if (req.body.age !== undefined) {
+        user.age = req.body.age ? Number(req.body.age) : undefined;
+      }
+
       if (req.body.password) {
         user.password = req.body.password;
       }
@@ -61,7 +65,11 @@ export const updateUserProfile = async (req, res, next) => {
         name: updatedUser.name,
         phone: updatedUser.phone,
         role: updatedUser.role,
+        city: updatedUser.city,
+        pincode: updatedUser.pincode,
         age: updatedUser.age,
+        hasCompletedHealthProfile: updatedUser.hasCompletedHealthProfile,
+        grandScore: updatedUser.grandScore,
       });
     } else {
       res.status(404);

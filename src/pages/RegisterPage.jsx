@@ -11,37 +11,14 @@ const RegisterPage = () => {
   const { register } = useAuth();
 
   const [form, setForm] = useState({
-    name: '', phone: '', age: '', password: '', confirmPassword: '',
-    city: '', pincode: '', role: roleFromUrl,
+    name: '', phone: '', password: '', confirmPassword: '',
+    role: roleFromUrl,
     hasSmartphone: true, hasWhatsApp: false, hasFamilySupport: false,
   });
   const [loading, setLoading] = useState(false);
   const [passwordError, setPasswordError] = useState('');
 
   const update = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
-
-  const fetchCityFromPincode = async (pincode) => {
-    if (pincode.length === 6) {
-      try {
-        const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
-        const data = await response.json();
-        if (data[0].Status === 'Success') {
-          const postOffice = data[0].PostOffice[0];
-          update('city', postOffice.District);
-        }
-      } catch (err) {
-        console.error('Failed to fetch city:', err);
-      }
-    }
-  };
-
-  const handlePincodeChange = (e) => {
-    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-    update('pincode', val);
-    if (val.length === 6) {
-      fetchCityFromPincode(val);
-    }
-  };
 
   const validatePassword = (password) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
@@ -78,17 +55,17 @@ const RegisterPage = () => {
   const roleLabel = form.role === 'elder' ? 'Grandparent' : 'Helper';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 py-10 px-6 relative">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 py-6 md:py-10 px-6 flex flex-col items-center justify-center md:relative">
       {/* Home Button */}
       <button
         onClick={() => navigate('/')}
-        className="absolute top-6 left-6 flex items-center gap-2 bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-gray-100 text-gray-600 hover:text-primary-600 hover:shadow-md transition-all font-bold"
+        className="mb-4 md:mb-0 md:absolute md:top-6 md:left-6 flex items-center gap-2 bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-gray-100 text-gray-600 hover:text-primary-600 hover:shadow-md transition-all font-bold self-start md:self-auto"
       >
         <Home className="w-5 h-5" />
         <span>Home</span>
       </button>
 
-      <div className="max-w-md mx-auto">
+      <div className="w-full max-w-md mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-black text-primary-700 mb-2">Join GrandCare as a {roleLabel}</h1>
           <p className="text-lg text-gray-600">It only takes a minute</p>
@@ -123,26 +100,6 @@ const RegisterPage = () => {
               <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)}
                 placeholder="10-digit mobile number" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" 
                 autoComplete="off" required />
-            </div>
-
-            <div>
-              <label className="block text-lg font-bold text-gray-700 mb-2">Age</label>
-              <input type="number" value={form.age} onChange={e => update('age', e.target.value)}
-                placeholder="Your age" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" 
-                min="1" max="120" required />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-lg font-bold text-gray-700 mb-2">City</label>
-                <input type="text" value={form.city} onChange={e => update('city', e.target.value)}
-                  placeholder="Auto-filled" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none bg-gray-50" required />
-              </div>
-              <div>
-                <label className="block text-lg font-bold text-gray-700 mb-2">PIN Code</label>
-                <input type="text" value={form.pincode} onChange={handlePincodeChange}
-                  placeholder="6-digit PIN" className="w-full p-4 border-2 border-gray-300 rounded-xl text-xl focus:border-primary-500 focus:outline-none" maxLength={6} required />
-              </div>
             </div>
 
             <div>

@@ -94,13 +94,31 @@ const AVATARS = {
 };
 
 const ProfilePage = ({ role }) => {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, setUser } = useAuth();
   const { largeText, setLargeText } = useSettings();
   const navigate = useNavigate();
   const elderData = useElder();
 
   const [avatar, setAvatar] = useState(localStorage.getItem('selected_avatar') || 'grandpa');
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+
+  // Personal Details Edit States
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [detailsForm, setDetailsForm] = useState({
+    name: '',
+    city: '',
+    age: '',
+  });
+
+  useEffect(() => {
+    if (user) {
+      setDetailsForm({
+        name: user.name || '',
+        city: user.city || '',
+        age: user.age || '',
+      });
+    }
+  }, [user]);
 
   // Health Profile States
   const [profile, setProfile] = useState(null);
@@ -196,6 +214,45 @@ const ProfilePage = ({ role }) => {
     }
   };
 
+  const handleSaveDetails = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setError('');
+
+    const body = {
+      name: detailsForm.name,
+      city: detailsForm.city,
+      age: detailsForm.age ? Number(detailsForm.age) : undefined,
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/users/me`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to update details');
+      }
+
+      const updatedUser = await res.json();
+      const fullUser = { ...user, ...updatedUser };
+      setUser(fullUser);
+      localStorage.setItem('user', JSON.stringify(fullUser));
+      setIsEditingDetails(false);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Failed to save details');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -268,29 +325,103 @@ const ProfilePage = ({ role }) => {
         )}
       </div>
 
-      <Card className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Personal Details</h3>
-          <button className="text-primary-600 p-2"><Edit3 className="w-6 h-6" /></button>
-        </div>
-        
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Phone Number</p>
-            <p className="text-xl text-gray-800">{user?.phone || 'Not provided'}</p>
+      {isEditingDetails ? (
+        <Card className="mb-6 border-2 border-primary-200 shadow-md">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Edit Personal Details</h3>
+          <form onSubmit={handleSaveDetails} className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-500 font-bold uppercase tracking-wider mb-2">Full Name</label>
+              <input 
+                type="text" 
+                value={detailsForm.name}
+                onChange={e => setDetailsForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Full Name"
+                className="w-full p-3 border-2 border-gray-300 rounded-xl text-lg focus:border-primary-500 focus:outline-none"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm text-gray-500 font-bold uppercase tracking-wider mb-2">City</label>
+              <input 
+                type="text" 
+                value={detailsForm.city}
+                onChange={e => setDetailsForm(prev => ({ ...prev, city: e.target.value }))}
+                placeholder="e.g. Mumbai"
+                className="w-full p-3 border-2 border-gray-300 rounded-xl text-lg focus:border-primary-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-500 font-bold uppercase tracking-wider mb-2">Age</label>
+              <input 
+                type="number" 
+                value={detailsForm.age}
+                onChange={e => setDetailsForm(prev => ({ ...prev, age: e.target.value }))}
+                placeholder="e.g. 70"
+                className="w-full p-3 border-2 border-gray-300 rounded-xl text-lg focus:border-primary-500 focus:outline-none"
+                min="1"
+                max="120"
+              />
+            </div>
+
+            <div className="flex gap-4 pt-2">
+              <LargeButton 
+                type="button" 
+                variant="secondary" 
+                onClick={() => {
+                  setIsEditingDetails(false);
+                  setDetailsForm({
+                    name: user?.name || '',
+                    city: user?.city || '',
+                    age: user?.age || '',
+                  });
+                }}
+                disabled={isSaving}
+              >
+                Cancel
+              </LargeButton>
+              <LargeButton 
+                type="submit" 
+                variant="primary"
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Save Details'}
+              </LargeButton>
+            </div>
+          </form>
+        </Card>
+      ) : (
+        <Card className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-800">Personal Details</h3>
+            <button 
+              onClick={() => setIsEditingDetails(true)} 
+              className="text-primary-600 p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+              title="Edit Personal Details"
+            >
+              <Edit3 className="w-6 h-6" />
+            </button>
           </div>
           
-          <div>
-            <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">City</p>
-            <p className="text-xl text-gray-800">{user?.city || 'Not specified'}</p>
-          </div>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Phone Number</p>
+              <p className="text-xl text-gray-800">{user?.phone || 'Not provided'}</p>
+            </div>
+            
+            <div>
+              <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">City</p>
+              <p className="text-xl text-gray-800">{user?.city || 'Not specified'}</p>
+            </div>
 
-          <div>
-            <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Age</p>
-            <p className="text-xl text-gray-800">{user?.age || 'Not specified'}</p>
+            <div>
+              <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Age</p>
+              <p className="text-xl text-gray-800">{user?.age || 'Not specified'}</p>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Health Profile Section */}
       {role === 'elder' && (

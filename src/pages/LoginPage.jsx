@@ -49,17 +49,17 @@ const LoginPage = () => {
   const roleLabel = role === 'elder' ? 'Grandparent' : 'Helper';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center px-6 relative">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 py-6 md:py-10 px-6 flex flex-col items-center justify-center md:relative">
       {/* Home Button */}
       <button
         onClick={() => navigate('/')}
-        className="absolute top-6 left-6 flex items-center gap-2 bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-gray-100 text-gray-600 hover:text-primary-600 hover:shadow-md transition-all font-bold"
+        className="mb-4 md:mb-0 md:absolute md:top-6 md:left-6 flex items-center gap-2 bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-sm border border-gray-100 text-gray-600 hover:text-primary-600 hover:shadow-md transition-all font-bold self-start md:self-auto"
       >
         <Home className="w-5 h-5" />
         <span>Home</span>
       </button>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-black text-primary-700 mb-2">Welcome Back</h1>
           <p className="text-xl text-gray-600">Login as a {roleLabel}</p>
