@@ -33,22 +33,30 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
+const checkOrigin = (origin, callback) => {
+  if (!origin) {
+    return callback(null, true);
+  }
+  const isAllowed = allowedOrigins.includes(origin) || 
+                    origin.startsWith('http://localhost:') || 
+                    origin.endsWith('.vercel.app');
+  if (isAllowed) {
+    callback(null, true);
+  } else {
+    callback(new Error('Not allowed by CORS'));
+  }
+};
+
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: checkOrigin,
     methods: ['GET', 'POST'],
     credentials: true
   }
 });
 
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
+  origin: checkOrigin,
   credentials: true
 }));
 app.use(express.json());
