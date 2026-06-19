@@ -133,5 +133,9 @@ without daily calls
   Made with 💙 for every grandparent who deserves better technology
 </div>
 
+---
+
 © 2026 Monish Parmar. All rights reserved.
-This project is not open for unauthorized copying or redistribution.
+
+GrandCare Nova is a proprietary project.
+Unauthorized copying, redistribution, or commercial use of this source code is prohibited without permission from the author.
