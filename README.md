@@ -132,3 +132,6 @@ without daily calls
 <div align="center">
   Made with 💙 for every grandparent who deserves better technology
 </div>
+
+© 2026 Monish Parmar. All rights reserved.
+This project is not open for unauthorized copying or redistribution.
