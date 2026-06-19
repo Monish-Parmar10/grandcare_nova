@@ -100,10 +100,8 @@ npm run dev
 Create a `.env` file in `/backend` with:
 ```
 PORT=5000
-MONGO_URI=your_mongodb_uri
+DB_URI=your_mongodb_uri
 JWT_SECRET=your_jwt_secret
-GEMINI_API_KEY_1=your_gemini_key_for_routines
-GEMINI_API_KEY_2=your_gemini_key_for_quiz
 ```
 
 ---
